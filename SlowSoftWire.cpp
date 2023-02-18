@@ -1,6 +1,6 @@
-/* 
-   SlowSoftWire.cpp - A Wire-like wrapper for SlowSoftI2CMaster. 
-   
+/*
+   SlowSoftWire.cpp - A Wire-like wrapper for SlowSoftI2CMaster.
+
    It is derived from the Arduino Wire library and for this reason is
    published under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -14,34 +14,35 @@
 
 #include <SlowSoftWire.h>
 
-SlowSoftWire::SlowSoftWire(uint8_t sda, uint8_t scl): 
+SlowSoftWire::SlowSoftWire(uint8_t sda, uint8_t scl):
   si2c(sda, scl)  { }
 
-SlowSoftWire::SlowSoftWire(uint8_t sda, uint8_t scl, bool internal_pullup): 
+SlowSoftWire::SlowSoftWire(uint8_t sda, uint8_t scl, bool internal_pullup):
   si2c(sda, scl, internal_pullup)  { }
 
-void SlowSoftWire::begin(void) {
+bool SlowSoftWire::begin(void) {
   rxBufferIndex = 0;
   rxBufferLength = 0;
   error = 0;
   transmitting = false;
-  
-  si2c.i2c_init();
+
+  return si2c.i2c_init();
 }
-  
-void  SlowSoftWire::setClock(uint32_t _) {
+
+bool  SlowSoftWire::setClock(uint32_t _) {
+  return true;
 }
 
 void  SlowSoftWire::beginTransmission(uint8_t address) {
   if (transmitting) {
     error = (si2c.i2c_rep_start((address<<1)|I2C_WRITE) ? 0 : 2);
   } else {
-    error = (si2c.i2c_start((address<<1)|I2C_WRITE) ? 0 : 2);
+    error = (si2c.i2c_start_wait((address<<1)|I2C_WRITE) ? 0 : 2);
   }
   // indicate that we are transmitting
   transmitting = 1;
 }
-  
+
 void  SlowSoftWire::beginTransmission(int address) {
   beginTransmission((uint8_t)address);
 }
@@ -106,7 +107,7 @@ uint8_t SlowSoftWire::requestFrom(uint8_t address, uint8_t quantity,
   localerror = !si2c.i2c_rep_start((address<<1) | I2C_READ);
   if (error == 0 && localerror) error = 2;
   // perform blocking read into buffer
-  for (uint8_t cnt=0; cnt < quantity; cnt++) 
+  for (uint8_t cnt=0; cnt < quantity; cnt++)
     rxBuffer[cnt] = si2c.i2c_read(cnt == quantity-1);
   // set rx buffer iterator vars
   rxBufferIndex = 0;
@@ -150,7 +151,7 @@ int SlowSoftWire::read(void) {
 
 int SlowSoftWire::peek(void) {
   int value = -1;
-    
+
   if(rxBufferIndex < rxBufferLength){
     value = rxBuffer[rxBufferIndex];
   }

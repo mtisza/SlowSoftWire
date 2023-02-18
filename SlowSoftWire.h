@@ -18,9 +18,9 @@ private:
 public:
   SlowSoftWire(uint8_t sda, uint8_t scl);
   SlowSoftWire(uint8_t sda, uint8_t scl, bool internal_pullup);
-  void begin(void);
+  bool begin(void);
   void end(void);
-  void setClock(uint32_t _);
+  bool setClock(uint32_t _);
   void beginTransmission(uint8_t address);
   void beginTransmission(int address);
   uint8_t endTransmission(uint8_t sendStop);
